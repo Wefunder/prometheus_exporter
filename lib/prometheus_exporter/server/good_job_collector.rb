@@ -33,7 +33,14 @@ module PrometheusExporter::Server
 
           if value
             gauge = gauges[name] ||= PrometheusExporter::Metric::Gauge.new("good_job_#{name}", help)
-            gauge.observe(value, labels)
+
+            if metric["by_queue"]
+              value.each do |queue_name, count|
+                gauge.observe(count, labels.merge(queue_name: queue_name))
+              end
+            else
+              gauge.observe(value, labels)
+            end
           end
         end
       end
