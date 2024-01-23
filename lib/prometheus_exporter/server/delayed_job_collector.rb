@@ -44,7 +44,7 @@ module PrometheusExporter::Server
       if @delayed_jobs_total
         [@delayed_job_duration_seconds, @delayed_job_latency_seconds_total, @delayed_jobs_total, @delayed_failed_jobs_total,
          @delayed_jobs_max_attempts_reached_total, @delayed_job_duration_seconds_summary, @delayed_job_attempts_summary,
-         @delayed_jobs_enqueued, @delayed_jobs_pending]
+         @delayed_jobs_enqueued, @delayed_jobs_pending, @delayed_jobs_ready]
       else
         []
       end
