@@ -23,7 +23,7 @@ module PrometheusExporter::Server
     end
 
     def metrics
-      return [] if good_job_metrics.empty?
+      return [] if good_job_metrics.length.zero?
 
       good_job_metrics.each(&method(:process_metric))
       gauges.values
