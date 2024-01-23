@@ -2,8 +2,6 @@
 
 module PrometheusExporter::Server
   class MetricsContainer
-    # Since MetricsContainer defines #each, we can include Enumerable
-    include Enumerable
     METRIC_MAX_AGE = 60
     METRIC_EXPIRE_ATTR = "_expire_at"
 
@@ -38,6 +36,10 @@ module PrometheusExporter::Server
 
     def each(&blk)
       wrap_expire(:each, &blk)
+    end
+
+    def map(&blk)
+      wrap_expire(:map, &blk)
     end
 
     def expire(time: nil, new_metric: nil)
