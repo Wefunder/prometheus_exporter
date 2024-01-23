@@ -52,7 +52,7 @@ module PrometheusExporter::Instrumentation
         max_attempts: max_attempts,
         enqueued: enqueued_count,
         pending: pending_count,
-        ready_count: ready_count
+        ready: ready_count
       )
     end
   end
