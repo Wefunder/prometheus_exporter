@@ -3,9 +3,6 @@
 # collects stats from GoodJob
 module PrometheusExporter::Instrumentation
   class GoodJob < PeriodicStats
-    COUNT_BY_QUEUE = ->(collection) { collection.group(:queue_name).size }
-    COUNT_ALL = ->(collection) { collection.size }
-
     def self.start(client: nil, frequency: 30, collect_by_queue: false)
       good_job_collector = new
       client ||= PrometheusExporter::Client.default
@@ -18,18 +15,30 @@ module PrometheusExporter::Instrumentation
     end
 
     def collect(by_queue = false)
-      count_method = by_queue ? COUNT_BY_QUEUE : COUNT_ALL
+      queue_names = by_queue ? ::GoodJob::Job.distinct.pluck(:queue_name) : nil
       {
         type: "good_job",
         by_queue: by_queue,
-        scheduled: ::GoodJob::Job.scheduled.yield_self(&count_method),
-        retried: ::GoodJob::Job.retried.yield_self(&count_method),
-        queued: ::GoodJob::Job.queued.yield_self(&count_method),
-        running: ::GoodJob::Job.running.yield_self(&count_method),
-        finished: ::GoodJob::Job.finished.yield_self(&count_method),
-        succeeded: ::GoodJob::Job.succeeded.yield_self(&count_method),
-        discarded: ::GoodJob::Job.discarded.yield_self(&count_method)
+        scheduled: compute_stats(::GoodJob::Job.scheduled, by_queue, queue_names),
+        retried: compute_stats(::GoodJob::Job.retried, by_queue, queue_names),
+        queued: compute_stats(::GoodJob::Job.queued, by_queue, queue_names),
+        running: compute_stats(::GoodJob::Job.running, by_queue, queue_names),
+        finished: compute_stats(::GoodJob::Job.finished, by_queue, queue_names),
+        succeeded: compute_stats(::GoodJob::Job.succeeded, by_queue, queue_names),
+        discarded: compute_stats(::GoodJob::Job.discarded, by_queue, queue_names)
       }
+    end
+
+    private
+
+    def compute_stats(scope, by_queue, queue_names)
+      return scope.size unless by_queue
+
+      result = scope.group(:queue_name).size
+      queue_names.each do |queue|
+        result[queue] ||= 0
+      end
+      result
     end
   end
 end
